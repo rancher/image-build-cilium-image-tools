@@ -1,0 +1,61 @@
+---
+kind: pipeline
+type: docker
+name: linux-amd64
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: always
+  image: rancher/hardened-build-base:v1.15.8b5
+  commands:
+  - make DRONE_TAG=${DRONE_TAG} image-build-compilers
+  - make DRONE_TAG=${DRONE_TAG} image-build-bpftool
+    #  - make DRONE_TAG=${DRONE_TAG} image-build-iproute2
+    #  - make DRONE_TAG=${DRONE_TAG} image-build-llvm
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  environment:
+    DOCKER_BUILDKIT: 1
+
+- name: publish
+  image: rancher/hardened-build-base:v1.15.8b5
+  commands:
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  - make DRONE_TAG=${DRONE_TAG} image-push-compilers image-manifest-compilers
+  - make DRONE_TAG=${DRONE_TAG} image-push-bpftool image-manifest-bpftool
+    #  - make DRONE_TAG=${DRONE_TAG} image-push-iproute2 image-manifest-iproute2
+    #  - make DRONE_TAG=${DRONE_TAG} image-push-llvm image-manifest-llvm
+  environment:
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+    DOCKER_USERNAME:
+      from_secret: docker_username
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - tag
+
+- name: scan
+  image: rancher/hardened-build-base:v1.15.8b5
+  commands:
+  - make DRONE_TAG=${DRONE_TAG} image-scan-compilers
+  - make DRONE_TAG=${DRONE_TAG} image-scan-bpftool
+    #  - make DRONE_TAG=${DRONE_TAG} image-scan-iproute2
+    #  - make DRONE_TAG=${DRONE_TAG} image-scan-llvm
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
+
+...
