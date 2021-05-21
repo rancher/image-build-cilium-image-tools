@@ -20,7 +20,7 @@ git apply ../../../patches/*
 
 docker build \
   --pull \
-  --build-arg COMPILERS_IMAGE=rancher/hardened-cilium-compiler:${TAG} \
-  --tag ${ORG}/hardened-cilium-compiler:${TAG} \
-  --tag ${ORG}/hardened-cilium-compiler:${TAG}-${ARCH} \
+  --build-arg COMPILERS_IMAGE=rancher/hardened-cilium-compilers:${TAG} \
+  --tag ${ORG}/hardened-cilium-iproute2:${TAG} \
+  --tag ${ORG}/hardened-cilium-iproute2:${TAG}-${ARCH} \
 .
