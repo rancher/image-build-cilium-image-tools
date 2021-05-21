@@ -1,0 +1,5 @@
+[epel7]
+name = epel7
+baseurl = https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/
+enabled = 1
+gpgcheck = 0

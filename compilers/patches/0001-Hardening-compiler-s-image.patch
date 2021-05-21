@@ -1,0 +1,119 @@
+From 281ad365b24976838acfe260fadb4a0472a2a0d0 Mon Sep 17 00:00:00 2001
+From: Manuel Buil <mbuil@suse.com>
+Date: Mon, 17 May 2021 12:05:12 +0200
+Subject: [PATCH] Hardening compiler's image
+
+Signed-off-by: Manuel Buil <mbuil@suse.com>
+---
+ images/compilers/Dockerfile      | 13 ++++-----
+ images/compilers/install-deps.sh | 47 ++++++++++++--------------------
+ 2 files changed, 23 insertions(+), 37 deletions(-)
+
+diff --git a/images/compilers/Dockerfile b/images/compilers/Dockerfile
+index c75017b..06a92e4 100644
+--- a/images/compilers/Dockerfile
++++ b/images/compilers/Dockerfile
+@@ -1,10 +1,11 @@
+ # Copyright 2020 Authors of Cilium
+ # SPDX-License-Identifier: Apache-2.0
+ 
+-ARG UBUNTU_IMAGE=docker.io/library/ubuntu:20.04@sha256:8bce67040cd0ae39e0beb55bcb976a824d9966d2ac8d2e4bf6119b45505cee64
+-ARG TESTER_IMAGE=docker.io/cilium/image-tester:6316b0f5606a69078bed1dd9f9c2b5685fede3b0@sha256:f180855b1fb965e05dd02f57019e070569c4d7f2ef0f7bdaaa30bf3393a2ce7a
++ARG CENTOS_IMAGE=docker.io/centos:7
+ 
+-FROM ${UBUNTU_IMAGE} as builder
++FROM ${CENTOS_IMAGE} as builder
++
++COPY centos.repo /etc/yum.repos.d/centos.repo
+ 
+ COPY install-deps.sh /tmp/install-deps.sh
+ RUN /tmp/install-deps.sh
+@@ -12,11 +13,7 @@ RUN /tmp/install-deps.sh
+ COPY install-bazel.sh /tmp/install-bazel.sh
+ RUN /tmp/install-bazel.sh
+ 
+-FROM ${TESTER_IMAGE} as test
+-COPY --from=builder / /
+-COPY test /test
+-RUN /test/bin/cst
+-
+ FROM scratch
+ LABEL maintainer="maintainer@cilium.io"
++ENV PATH "$PATH:/opt/rh/devtoolset-7/root/usr/bin/"
+ COPY --from=builder / /
+diff --git a/images/compilers/install-deps.sh b/images/compilers/install-deps.sh
+index 7e386fc..aab391f 100755
+--- a/images/compilers/install-deps.sh
++++ b/images/compilers/install-deps.sh
+@@ -11,50 +11,39 @@ set -o nounset
+ packages=(
+   automake
+   binutils
+-  binutils-aarch64-linux-gnu
+   bison
+-  build-essential
+   ca-certificates
+-  cmake
+-  crossbuild-essential-arm64
++  cmake3
+   curl
+   flex
+-  g++
+-  g++-aarch64-linux-gnu
+-  gcc
+-  gcc-aarch64-linux-gnu
+   git
+-  libelf-dev
+-  libelf-dev:arm64
+-  libmnl-dev
++  elfutils-devel
++  elfutils-libelf
++  libcap-devel
++  libdb-devel
++  libmnl
++  libmnl-devel
+   libtool
++  libselinux-devel
+   make
+   ninja-build
+-  pkg-config
+-  pkg-config-aarch64-linux-gnu
+-  python2
++  pkgconfig
+   python3
+   python3-pip
+   unzip
+ )
+ 
+-export DEBIAN_FRONTEND=noninteractive
++yum update -y
+ 
+-cat > /etc/apt/sources.list << EOF
+-deb [arch=amd64] http://archive.ubuntu.com/ubuntu focal main restricted universe multiverse
+-deb [arch=amd64] http://security.ubuntu.com/ubuntu focal-security main restricted universe multiverse
+-deb [arch=amd64] http://archive.ubuntu.com/ubuntu focal-backports main restricted universe multiverse
+-deb [arch=arm64] http://ports.ubuntu.com/ focal main restricted universe multiverse
+-deb [arch=arm64] http://ports.ubuntu.com/ focal-security main restricted universe multiverse
+-deb [arch=arm64] http://ports.ubuntu.com/ focal-backports main restricted universe multiverse
+-EOF
+-
+-dpkg --add-architecture arm64
+-
+-apt-get update
++yum install -y yum-utils centos-release-scl which
++yum -y --enablerepo=centos-sclo-rh-testing install devtoolset-7-gcc*
++scl enable devtoolset-7 bash
+ 
+ ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+ 
+-apt-get install -y --no-install-recommends "${packages[@]}"
++yum install -y "${packages[@]}"
++
++update-alternatives \
++  --install /usr/bin/cmake cmake /usr/bin/cmake3 100
+ 
+-update-alternatives --install /usr/bin/python python /usr/bin/python2 1
++yum remove -y gcc
+-- 
+2.26.2
+
