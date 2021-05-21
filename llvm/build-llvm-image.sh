@@ -20,7 +20,7 @@ git apply ../../../patches/*
 
 docker build \
   --pull \
-  --build-arg COMPILERS_IMAGE=rancher/hardened-cilium-compiler:${TAG} \
+  --build-arg COMPILERS_IMAGE=rancher/hardened-cilium-compilers:${TAG} \
   --tag ${ORG}/hardened-cilium-llvm:${TAG} \
   --tag ${ORG}/hardened-cilium-llvm:${TAG}-${ARCH} \
 .

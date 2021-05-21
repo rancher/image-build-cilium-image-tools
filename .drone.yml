@@ -14,8 +14,8 @@ steps:
   commands:
   - make DRONE_TAG=${DRONE_TAG} image-build-compilers
   - make DRONE_TAG=${DRONE_TAG} image-build-bpftool
-    #  - make DRONE_TAG=${DRONE_TAG} image-build-iproute2
-    #  - make DRONE_TAG=${DRONE_TAG} image-build-llvm
+  - make DRONE_TAG=${DRONE_TAG} image-build-iproute2
+  - make DRONE_TAG=${DRONE_TAG} image-build-llvm
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -28,8 +28,8 @@ steps:
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
   - make DRONE_TAG=${DRONE_TAG} image-push-compilers image-manifest-compilers
   - make DRONE_TAG=${DRONE_TAG} image-push-bpftool image-manifest-bpftool
-    #  - make DRONE_TAG=${DRONE_TAG} image-push-iproute2 image-manifest-iproute2
-    #  - make DRONE_TAG=${DRONE_TAG} image-push-llvm image-manifest-llvm
+  - make DRONE_TAG=${DRONE_TAG} image-push-iproute2 image-manifest-iproute2
+  - make DRONE_TAG=${DRONE_TAG} image-push-llvm image-manifest-llvm
   environment:
     DOCKER_PASSWORD:
       from_secret: docker_password
@@ -47,8 +47,8 @@ steps:
   commands:
   - make DRONE_TAG=${DRONE_TAG} image-scan-compilers
   - make DRONE_TAG=${DRONE_TAG} image-scan-bpftool
-    #  - make DRONE_TAG=${DRONE_TAG} image-scan-iproute2
-    #  - make DRONE_TAG=${DRONE_TAG} image-scan-llvm
+  - make DRONE_TAG=${DRONE_TAG} image-scan-iproute2
+  - make DRONE_TAG=${DRONE_TAG} image-scan-llvm
   volumes:
   - name: docker
     path: /var/run/docker.sock
